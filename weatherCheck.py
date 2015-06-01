@@ -3,6 +3,8 @@
 #       This tool uses the Weather Underground API, thanks to all the meteorologists!
 #       www.wunderground.com
 #
+#       Additional thanks to Kevin and Q, thank you for your support and resources.  :-)
+#
 # Copyright 2015 Shaun Potts
 ################################################################
 
@@ -10,12 +12,38 @@ import requests
 import json
 import datetime
 import getpass
-from datetime import date, timedelta
+from   datetime import date, timedelta
 import sys
+import argparse
+import logging
 
+#   Importing prettyPrint just for testing REMOVE ONCE FINISHED
 import pprint
-
 pp = pprint
+
+#-----------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------
+EXIT_STATUS_OK         = 0
+EXIT_STATUS_ERROR      = 1
+WEATHERCHECK_CURRTEMP  = None
+WEATHERCHECK_ZIPCODE   = None
+WEATHERCHECK_THREEDAYFORECAST  = None
+WEATHERCHECK_AGOODDAY          = None
+WEATHERCHECK_PASTWEEKAVG       = None
+WEATHERCHECK_PASTWEEKDAILYAVG  = None
+WEATHERCHECK_APIKEY            = '5f348904b60ca855'
+
+VALID_WEATHERCHECK_OPTIONS = [
+    WEATHERCHECK_CURRTEMP,
+    WEATHERCHECK_ZIPCODE,
+    WEATHERCHECK_THREEDAYFORECAST,
+    WEATHERCHECK_AGOODDAY,
+    WEATHERCHECK_PASTWEEKAVG,
+    WEATHERCHECK_PASTWEEKDAILYAVG,
+    WEATHERCHECK_APIKEY
+    ]
+
 # Getting date
 thisDay = date.today()
 
@@ -74,6 +102,8 @@ outputThreeDayForecast   = True
 #                       limit is easy to hit. (Not necessarily the 500/day, but the 10/min is easy as EACH day in the 7-day-call is singular)
 #
 #                   -Arg parsing, instead of test statements
+#
+#                   -Add arg to give city/state optionally vs zipcode as a creature-comfort
 #
 #                   -Actual logging and exception handling
 ###################################################################
@@ -277,10 +307,82 @@ def forecastWeather(givenZip):
         
         
                 
-#--------------------------------  Yay running stuff!    
+#--------------------------------  Yay running stuff!  
+# Main
+#-----------------------------------------------------------
+def main():
 
+    try:
+        # Setting up logger
+     #   logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+        
+        #   Initialize arg parser
+        parser = argparse.ArgumentParser(description="Process CLI args")
+       
+       
+        #   Setting up valid CLI args
+        parser.add_argument("--currenttemp",
+                        help="Get the current temperature in Fahrenheit. (5-digit zipcode required)",
+                        action="store_true", default=None)
+                        
+        #   Zip codes are the only args we take that aren't simply switch flags, process them properly.                
+        parser.add_argument("--zipcode",
+                        help="5-digit zip code for city you want weather info for. (last 7-days\' avg temp locked to San Jose)",
+                        action="store",  default=None)
+                        
+        parser.add_argument("--threedayforecast",
+                        help="Shows 3-day forecast for a given zipcode (5-digit zipcode required)",
+                        action="store_true", default=None)
+                        
+        parser.add_argument("--agoodday",
+                        help="Checks today's forecast to see if it will be both Sunny and exactly 68F",
+                        action="store_true", default=None)
+                        
+        parser.add_argument("--pastweekavg",
+                        help="Returns the passed 7 days\' average temperature as a total average",
+                        action="store_true", default=None)
+                        
+        parser.add_argument("--pastweekdailyavg",
+                        help="Different than \'pastweekavg\', this returns the passed 7 days\' average temps individually",
+                        action="store_true", default=None)
+                        
+        parser.add_argument("--apikey",
+                        help="Our great friends at Weather Underground require an api key to use their service, use yours, mine defaults just in case",
+                        default='5f348904b60ca855')
+        
+        # Parse arguments
+        args = parser.parse_args()
+        #argsDict = vars(args)
+        print(args.apikey)
+
+        
+        if not args:
+            parser.error("No action specified. Please choose an action, such as: --currenttemp, --agoodday, --threedayforecast, --pastweekavg, or --pastweekdailyavg")
+            print('crap')
+        #   Ensuring that CLI args match available options: 
+        if not args:
+            parser.error("Invalid option specified. Please choose an action, such as: --currenttemp, --agoodday, --threedayforecast, --pastweekavg, or --pastweekdailyavg")
+    
+#        if WEATHERCHECK_PASTWEEK in args:
+#            print("got here")
+    
+    
+    # Catching argument errors:
+    except:
+        print("Error")
+        raise
+        return EXIT_STATUS_ERROR
+        
+    return EXIT_STATUS_OK
+    
+if __name__ == '__main__':
+    exit_status = main()
+    sys.exit(exit_status)
+    
+# main()    
+    
 ########## TODO: argparsing instead of test statements
-forecastWeather(94541)
+#forecastWeather(94541)
 
 #currentTemp(94541)    
 #lookAtHistory()
